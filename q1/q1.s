@@ -1,7 +1,7 @@
-.section .text
 .section .data
     best: .word -1
 
+.section .text
 .global make_node
 .global insert
 .global get
@@ -28,8 +28,8 @@ make_node:
 
 insert:
     # addi sp, sp, -128   # enough space for stack
-    lw t0, 0(a0)          # t0 has root -> val
     beq a0, zero, newNode # if root == NULL, go to newNode
+    lw t0, 0(a0)          # t0 has root -> val
     bne a0, zero, findNode  # else, find the necessary node
 
     findNode:
@@ -126,41 +126,45 @@ getAtMostHelper:
         ret 
 
     searchTree:
-        addi sp, sp, -16
+        addi sp, sp, -32
         sd ra, 0(sp)    # save return address in stack
         sd a1, 8(sp)    # save previous root
+        sd a0, 16(sp)   # store a0 
 		ld a1, 8(a1)	# load root -> left in a0
 		call getAtMostHelper	# call on left child
 
+        ld a0, 16(sp)  
 		ld a1, 8(sp)
 		ld ra, 0(sp)
-		addi sp, sp, 16
+		addi sp, sp, 32
 
-		ld t0, 0(a1)	# load root -> val in temporary register
+		lw t0, 0(a1)	# load root -> val in temporary register
 		la t1, best		# load address of global 'best' in t1
 		lw t1, 0(t1)	# value of best loaded in t1
 		bgt t0, a0, returnNow	# if root -> val > val, go to returnNow
 		ble t0, a0, newBest
 
-		addi sp, sp, -16	# increment stack pointer again
-		sd ra, 0(sp)    # save return address in stack
-		sd a1, 8(sp)    # save previous root
-		ld a1, 16(a1)	# load root -> right in a0
-		call getAtMostHelper	# call on right child
-
-		ld a1, 8(sp)	# restore original root in register a1
-		ld ra, 0(sp)
-		la t1, best		# load address of global 'best' in t1
-		lw a0, 0(t1)	# load value at address 'best' in a0
-
-		addi sp, sp, 16	# restore stack pointer fully
-		ret
-
-		newBest:
-			ld t0, 0(a1)	# load root -> val in temporary register
+        newBest:
+			lw t0, 0(a1)	# load root -> val in temporary register
 			la t1, best		# load address of global 'best' in t1
 			sw t0, 0(t1)		# store root -> val in best
 		
+		addi sp, sp, -32	# increment stack pointer again
+		sd ra, 0(sp)    # save return address in stack
+		sd a1, 8(sp)    # save previous root
+        sd a0, 16(sp)   # 
+		ld a1, 16(a1)	# load root -> right in a0
+		call getAtMostHelper	# call on right child
+        
+        ld a0, 16(sp)   # 
+		ld a1, 8(sp)	# restore original root in register a1
+		ld ra, 0(sp)    # 
+		la t1, best		# load address of global 'best' in t1
+		lw a0, 0(t1)	# load value at address 'best' in a0
+
+		addi sp, sp, 32	# restore stack pointer fully
+		ret
+
 		returnNow:
 			la t1, best		# load address of global 'best' in t1
 			lw a0, 0(t1)		# move this to a0
