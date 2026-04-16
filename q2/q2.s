@@ -1,5 +1,6 @@
 .section .data
 format_int: .string "%d "
+format_last: .string "%d"
 format_newline: .string "\n"
 
 .section .bss
@@ -150,11 +151,21 @@ main:
 			add t0, t0, t2			# t0 <-- result + 8 * k
 			ld t3, 0(t0)			# t3 <-- result[k]
 			mv a1, t3				# a1 <-- t3
-			la t1, format_int		# has "%d "
-			mv a0, t1				# a0 <-- "%d "
+			addi t4, s9, -1            # last index = s9 - 1
+			beq s4, t4, last_elem
+
+			la a0, format_int
 			call printf
-			addi s4, s4, 1			# k++
-			j printing
+			j next
+
+			last_elem:
+				la a0, format_last
+				call printf
+
+			next:
+				addi s4, s4, 1
+				j printing
+
 
 			completed:
 				la a0, format_newline
